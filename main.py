@@ -253,7 +253,7 @@ class Results():
         return begining + rows + end
 
     def get_row_latex_repr(self, methodResult):
-        return "{} & {} & {} \\\ \\hline \n".format(methodResult.methodName, methodResult.testROC, methodResult.testPC)
+        return "{} & {:.4f} & {:.4f} \\\ \\hline \n".format(methodResult.methodName, methodResult.testROC, methodResult.testPC)
 
 def calculate(file_path="graph.graph"):
     graph = nx.read_edgelist(file_path, delimiter=" ")
