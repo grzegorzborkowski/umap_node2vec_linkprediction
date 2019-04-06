@@ -238,7 +238,7 @@ class Results():
     
     def get_latex_representation(self):
         begining = """
-        \\begin{table}[]
+        \\begin{table}[H]
         \\begin{tabular}{|l|l|l|}
         \\hline
         \\textbf{Name of the method} & \\textbf{ROC score} & \\textbf{AP score} \\\ \hline
@@ -249,8 +249,13 @@ class Results():
             \end{table}
         """
 
+        caption_txt = "Link prediction on Wikipedia dataset containing {} nodes, {} training edges {} and testing edges".format(
+            self.number_of_nodes, self.training_edges, self.test_edges)
+
+        caption = "\caption{" + caption_txt + "}"
+
         rows = " ".join([self.get_row_latex_repr(method) for method in self.list_of_methods_result])
-        return begining + rows + end
+        return begining + rows + caption + end
 
     def get_row_latex_repr(self, methodResult):
         return "{} & {:.4f} & {:.4f} \\\ \\hline \n".format(methodResult.methodName, methodResult.testROC, methodResult.testPC)
@@ -263,21 +268,21 @@ def calculate(file_path="graph.graph"):
     connected_components = nx.connected_components(graph)
     largest_cc_nodes = max(connected_components, key=len)
     graph = graph.subgraph(largest_cc_nodes)
-    print (graph)
+    # print (graph)
     adj_sparse = nx.to_scipy_sparse_matrix(graph)
     adj = nx.to_numpy_matrix(graph)
     adj_train, train_edges, train_edges_false, val_edges, val_edges_false, \
     test_edges, test_edges_false = mask_test_edges(adj_sparse, test_frac=.3, val_frac=.1)
 
     # Inspect train/test split
-    print ("Total nodes:", adj_sparse.shape[0])
-    print ("Total edges:", int(adj_sparse.nnz/2)) # adj is symmetric, so nnz (num non-zero) = 2*num_edges
-    print ("Training edges (positive):", len(train_edges))
-    print ("Training edges (negative):", len(train_edges_false))
-    print ("Validation edges (positive):", len(val_edges))
-    print ("Validation edges (negative):", len(val_edges_false))
-    print ("Test edges (positive):", len(test_edges))
-    print ("Test edges (negative):", len(test_edges_false))
+    # print ("Total nodes:", adj_sparse.shape[0])
+    # print ("Total edges:", int(adj_sparse.nnz/2)) # adj is symmetric, so nnz (num non-zero) = 2*num_edges
+    # print ("Training edges (positive):", len(train_edges))
+    # print ("Training edges (negative):", len(train_edges_false))
+    # print ("Validation edges (positive):", len(val_edges))
+    # print ("Validation edges (negative):", len(val_edges_false))
+    # print ("Test edges (positive):", len(test_edges))
+    # print ("Test edges (negative):", len(test_edges_false))
 
     g_train = nx.from_scipy_sparse_matrix(adj_train) # new graph object with only non-hidden edges
     aa_matrix = np.zeros(adj.shape)
@@ -341,12 +346,10 @@ def calculate(file_path="graph.graph"):
         node_emb = emb_mappings[node_str]
         emb_list.append(node_emb)
     emb_matrix = np.vstack(emb_list)
-    print (emb_mappings)
     
     umap_obj = umap.UMAP(n_neighbors=10, min_dist=0.03, n_components=24)
     emb_mappings_umap = umap_obj.fit_transform(emb_matrix)
-    print (emb_mappings_umap)
-
+    
     pca_obj = PCA(n_components=24)
     emb_mappings_pca = pca_obj.fit_transform(emb_matrix)
  
@@ -380,7 +383,9 @@ def calculate(file_path="graph.graph"):
         methods_list.append(MethodResult(key, test_roc, test_ap))
     
     result = Results(adj_sparse.shape[0], len(train_edges), len(test_edges), methods_list)
-    print(result.get_latex_representation())
+    
+    with open("results.txt", "a") as file:
+        file.write(result.get_latex_representation())
 
 
 def link_prediction_on_embedding(lp_arg):
