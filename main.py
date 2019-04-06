@@ -23,6 +23,7 @@ from LP_arguments import LP_arguments
 from sklearn.manifold import TSNE
 import umap
 from sklearn.decomposition import PCA
+import argparse
 
 def sparse_to_tuple(sparse_mx):
     if not sp.isspmatrix_coo(sparse_mx):
@@ -260,9 +261,8 @@ class Results():
     def get_row_latex_repr(self, methodResult):
         return "{} & {:.4f} & {:.4f} \\\ \\hline \n".format(methodResult.methodName, methodResult.testROC, methodResult.testPC)
 
-def calculate(file_path="graph.graph"):
+def calculate(min_degree, file_path="graph.graph"):
     graph = nx.read_edgelist(file_path, delimiter=" ")
-    min_degree = 200
     nodes = [node for node, degree in graph.degree().items() if degree >= min_degree]
     graph = graph.subgraph(nodes)
     connected_components = nx.connected_components(graph)
@@ -274,15 +274,6 @@ def calculate(file_path="graph.graph"):
     adj_train, train_edges, train_edges_false, val_edges, val_edges_false, \
     test_edges, test_edges_false = mask_test_edges(adj_sparse, test_frac=.3, val_frac=.1)
 
-    # Inspect train/test split
-    # print ("Total nodes:", adj_sparse.shape[0])
-    # print ("Total edges:", int(adj_sparse.nnz/2)) # adj is symmetric, so nnz (num non-zero) = 2*num_edges
-    # print ("Training edges (positive):", len(train_edges))
-    # print ("Training edges (negative):", len(train_edges_false))
-    # print ("Validation edges (positive):", len(val_edges))
-    # print ("Validation edges (negative):", len(val_edges_false))
-    # print ("Test edges (positive):", len(test_edges))
-    # print ("Test edges (negative):", len(test_edges_false))
 
     g_train = nx.from_scipy_sparse_matrix(adj_train) # new graph object with only non-hidden edges
     aa_matrix = np.zeros(adj.shape)
@@ -454,4 +445,9 @@ def get_edge_embeddings(edge_list,emb_matrix):
     
 
 if __name__ == "__main__":
-    calculate()
+
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--min_degree', type=int)
+    args = parser.parse_args()
+    args = vars(args)
+    calculate(args['min_degree'])
