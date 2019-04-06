@@ -289,10 +289,6 @@ def calculate(file_path="graph.graph"):
     aa_matrix = aa_matrix / aa_matrix.max()
     aa_roc, aa_ap = get_roc_score(adj_sparse, test_edges, test_edges_false, aa_matrix)
 
-    print ('Adamic-Adar Test ROC score: ', str(aa_roc))
-    print ('Adamic-Adar Test AP score: ', str(aa_ap))
-
-
     jc_matrix = np.zeros(adj.shape)
     for u, v, p in nx.jaccard_coefficient(g_train): # (u, v) = node indices, p = Jaccard coefficient
         jc_matrix[u][v] = p
@@ -303,9 +299,7 @@ def calculate(file_path="graph.graph"):
     # Calculate ROC AUC and Average Precision
     jc_roc, jc_ap = get_roc_score(adj_sparse, test_edges, test_edges_false, jc_matrix)
 
-    print ('Jaccard Coefficient Test ROC score: ', str(jc_roc))
-    print ('Jaccard Coefficient Test AP score: ', str(jc_ap))
-
+    
     pa_matrix = np.zeros(adj.shape)
     for u, v, p in nx.preferential_attachment(g_train): # (u, v) = node indices, p = Jaccard coefficient
         pa_matrix[u][v] = p
@@ -318,9 +312,7 @@ def calculate(file_path="graph.graph"):
     # Calculate ROC AUC and Average Precision
     pa_roc, pa_ap = get_roc_score(adj_sparse, test_edges, test_edges_false, pa_matrix)
 
-    print ('Preferential Attachment Test ROC score: ', str(pa_roc))
-    print ('Preferential Attachment Test AP score: ', str(pa_ap))
-
+    
     P = 1 # Return hyperparameter
     Q = 1 # In-out hyperparameter
     WINDOW_SIZE = 12 # Context size for optimization
@@ -375,13 +367,18 @@ def calculate(file_path="graph.graph"):
         "node2vec+UMAP" : lp_arg_umap,
         "node2vec+PCA": lp_arg_pca
     }
+    
+    adamic_adard_result = MethodResult('Adamic-Adar', aa_roc, aa_ap)
+    jc_result = MethodResult('Jaccard Coefficient', jc_roc, jc_ap)
+    pa_result = MethodResult('Preferential Attachment', pa_roc, pa_ap)
 
-    methods_list = []
-
+    methods_list = [adamic_adard_result, jc_result, pa_result]
+    
     for key, value in methods.items():
         val_roc, val_ap, test_roc, test_ap = link_prediction_on_embedding(value)
 
         methods_list.append(MethodResult(key, test_roc, test_ap))
+    
     result = Results(adj_sparse.shape[0], len(train_edges), len(test_edges), methods_list)
     print(result.get_latex_representation())
 
