@@ -240,13 +240,12 @@ class Results():
     def get_latex_representation(self):
         begining = """
         \\begin{table}[H]
-        \\begin{tabular}{|l|l|l|}
+        \\begin{tabular}{|l|c|c|}
         \\hline
-        \\textbf{Name of the method} & \\textbf{ROC score} & \\textbf{AP score} \\\ \hline
+        \\textbf{Name of the method} & \\textbf{ROC score} & \\textbf{Precision score} \\\ \hline
         """
-        
+       	end_tabular = """\end{tabular}""" 
         end = """
-            \end{tabular}
             \end{table}
         """
 
@@ -256,7 +255,7 @@ class Results():
         caption = "\caption{" + caption_txt + "}"
 
         rows = " ".join([self.get_row_latex_repr(method) for method in self.list_of_methods_result])
-        return begining + rows + caption + end
+        return begining + rows + end_tabular + caption + end
 
     def get_row_latex_repr(self, methodResult):
         return "{} & {:.4f} & {:.4f} \\\ \\hline \n".format(methodResult.methodName, methodResult.testROC, methodResult.testPC)
