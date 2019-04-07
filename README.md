@@ -15,5 +15,4 @@ This code is mainly based on https://github.com/lucashu1/link-prediction
 
 
 To run:
-python3 main.py
-
+bash run_experiments.sh
