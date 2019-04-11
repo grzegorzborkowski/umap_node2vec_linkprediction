@@ -17,6 +17,7 @@ import networkx as nx
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
 from sklearn.linear_model import LogisticRegression
+from LatexGenerator import *
 
 def sparse_to_tuple(sparse_mx):
     if not sp.isspmatrix_coo(sparse_mx):
