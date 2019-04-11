@@ -1,8 +1,7 @@
 import networkx as nx
 import scipy.sparse as sp
 import numpy as np
-from gensim.models import Word2Vec
-import node2vec
+
 from LP_arguments import LP_arguments
 from sklearn.manifold import TSNE
 import umap
@@ -10,6 +9,7 @@ from sklearn.decomposition import PCA
 import argparse
 from link_prediction_helpers import *
 from collections import namedtuple
+from models_factory import ModelFactory
 
 MethodResult = namedtuple('MethodResult', ['methodName', 'testROC', 'testPC'])
 
@@ -62,26 +62,9 @@ def calculate(min_degree, file_path="graph.graph"):
     # Calculate ROC AUC and Average Precision
     pa_roc, pa_ap = get_roc_score(adj_sparse, test_edges, test_edges_false, pa_matrix)
 
-    P = 1 # Return hyperparameter
-    Q = 1 # In-out hyperparameter
-    WINDOW_SIZE = 12 # Context size for optimization
-    NUM_WALKS = 20 # Number of walks per source
-    WALK_LENGTH = 5 # Length of walk per source
-    DIMENSIONS = 32 # Embedding dimension
-    DIRECTED = False # Graph directed/undirected
-    WORKERS = 8 # Num. parallel workers
-    ITER = 10 # SGD epochs
-
-    # Preprocessing, generate walks
-    g_n2v = node2vec.Graph(g_train, DIRECTED, P, Q) # create node2vec graph instance
-    g_n2v.preprocess_transition_probs()
-    walks = g_n2v.simulate_walks(NUM_WALKS, WALK_LENGTH)
-    walks = [map(str, walk) for walk in walks]
-
-    # Train skip-gram model
-    walks = [list(map(str, walk)) for walk in walks] # convert each vertex id to a string
-    model = Word2Vec(walks, size=DIMENSIONS, window=WINDOW_SIZE, min_count=0, sg=1, workers=WORKERS, iter=ITER)
-
+    model_factory = ModelFactory()
+    model = model_factory.get_model("node2vec", g_train)
+    
     # Store embeddings mapping
     emb_mappings = model.wv
     emb_list = []

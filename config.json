@@ -1,0 +1,13 @@
+{
+    "node2vec": {
+        "P" : 1,
+        "Q" : 1,
+        "WINDOW_SIZE": 1,
+        "NUM_WALKS": 20,
+        "WALK_LENGTH": 5,
+        "DIMENSIONS": 32,
+        "DIRECTED": "false",
+        "WORKERS": 8,
+        "ITER": 10
+    }
+}
