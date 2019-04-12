@@ -22,7 +22,7 @@ def calculate(min_degree, file_path="graph.graph"):
     connected_components = nx.connected_components(graph)
     largest_cc_nodes = max(connected_components, key=len)
     graph = graph.subgraph(largest_cc_nodes)
-    # print (graph)
+
     adj_sparse = nx.to_scipy_sparse_matrix(graph)
     adj = nx.to_numpy_matrix(graph)
     adj_train, train_edges, train_edges_false, val_edges, val_edges_false, \
@@ -65,6 +65,7 @@ def calculate(min_degree, file_path="graph.graph"):
     model_factory = ModelFactory()
     model = model_factory.get_model("node2vec", g_train)
     
+    #TODO: refactor these three calls. Make a function out of it
     # Store embeddings mapping
     emb_mappings = model.wv
     emb_list = []
@@ -76,21 +77,33 @@ def calculate(min_degree, file_path="graph.graph"):
     
     umap_obj = umap.UMAP(n_neighbors=10, min_dist=0.03, n_components=24)
     emb_mappings_umap = umap_obj.fit_transform(emb_matrix)
-    
+
+    emb_list_umap = []
+    for node_index in range(0, adj_sparse.shape[0]):
+        node_emb = emb_mappings_umap[node_index]
+        emb_list_umap.append(node_emb)
+    emb_matrix_umap = np.vstack(emb_list_umap)
+
     pca_obj = PCA(n_components=24)
     emb_mappings_pca = pca_obj.fit_transform(emb_matrix)
- 
+
+    emb_list_pca = []
+    for node_index in range(0, adj_sparse.shape[0]):
+        node_emb = emb_mappings_pca[node_index]
+        emb_list_pca.append(node_emb)
+    emb_matrix_pca = np.vstack(emb_list_pca)
+
     lp_arg = LP_arguments(emb_mappings=emb_mappings, adj_sparse = adj_sparse, train_edges = train_edges, \
      train_edges_false = train_edges_false, val_edges = val_edges, val_edges_false = val_edges_false, \
      test_edges = test_edges, test_edges_false = test_edges_false, matrix=emb_matrix)
     
     lp_arg_umap = LP_arguments(emb_mappings=emb_mappings_umap, adj_sparse=adj_sparse, train_edges = train_edges, \
      train_edges_false = train_edges_false, val_edges = val_edges, val_edges_false = val_edges_false, \
-     test_edges = test_edges, test_edges_false = test_edges_false, matrix=emb_mappings_umap)
+     test_edges = test_edges, test_edges_false = test_edges_false, matrix=emb_matrix_umap)
     
     lp_arg_pca = LP_arguments(emb_mappings=emb_mappings_pca, adj_sparse=adj_sparse, train_edges = train_edges, \
      train_edges_false = train_edges_false, val_edges = val_edges, val_edges_false = val_edges_false, \
-     test_edges = test_edges, test_edges_false = test_edges_false, matrix=emb_mappings_pca)
+     test_edges = test_edges, test_edges_false = test_edges_false, matrix=emb_matrix_pca)
     
     methods = {
         "node2vec" : lp_arg,
