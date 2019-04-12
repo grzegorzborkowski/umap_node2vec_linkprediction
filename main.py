@@ -1,19 +1,13 @@
 import networkx as nx
 import scipy.sparse as sp
 import numpy as np
-
 from LP_arguments import LP_arguments
-from sklearn.manifold import TSNE
-import umap
-from sklearn.decomposition import PCA
 import argparse
 from link_prediction_helpers import *
 from collections import namedtuple
 from models_factory import ModelFactory
 
 MethodResult = namedtuple('MethodResult', ['methodName', 'testROC', 'testPC'])
-
-
 
 def calculate(min_degree, file_path="graph.graph"):
     graph = nx.read_edgelist(file_path, delimiter=" ")
@@ -27,7 +21,6 @@ def calculate(min_degree, file_path="graph.graph"):
     adj = nx.to_numpy_matrix(graph)
     adj_train, train_edges, train_edges_false, val_edges, val_edges_false, \
     test_edges, test_edges_false = mask_test_edges(adj_sparse, test_frac=.3, val_frac=.1)
-
 
     g_train = nx.from_scipy_sparse_matrix(adj_train) # new graph object with only non-hidden edges
     aa_matrix = np.zeros(adj.shape)
@@ -49,7 +42,6 @@ def calculate(min_degree, file_path="graph.graph"):
     # Calculate ROC AUC and Average Precision
     jc_roc, jc_ap = get_roc_score(adj_sparse, test_edges, test_edges_false, jc_matrix)
 
-    
     pa_matrix = np.zeros(adj.shape)
     for u, v, p in nx.preferential_attachment(g_train): # (u, v) = node indices, p = Jaccard coefficient
         pa_matrix[u][v] = p
@@ -58,12 +50,11 @@ def calculate(min_degree, file_path="graph.graph"):
     # Normalize array
     pa_matrix = pa_matrix / pa_matrix.max()
 
-
     # Calculate ROC AUC and Average Precision
     pa_roc, pa_ap = get_roc_score(adj_sparse, test_edges, test_edges_false, pa_matrix)
 
-    model_factory = ModelFactory()
-    model = model_factory.get_model("node2vec", g_train)
+    model_factory = ModelFactory(g_train)
+    model = model_factory.get_model("node2vec")
     
     #TODO: refactor these three calls. Make a function out of it
     # Store embeddings mapping
@@ -75,7 +66,7 @@ def calculate(min_degree, file_path="graph.graph"):
         emb_list.append(node_emb)
     emb_matrix = np.vstack(emb_list)
     
-    umap_obj = umap.UMAP(n_neighbors=10, min_dist=0.03, n_components=24)
+    umap_obj = model_factory.get_model("UMAP")
     emb_mappings_umap = umap_obj.fit_transform(emb_matrix)
 
     emb_list_umap = []
@@ -84,7 +75,7 @@ def calculate(min_degree, file_path="graph.graph"):
         emb_list_umap.append(node_emb)
     emb_matrix_umap = np.vstack(emb_list_umap)
 
-    pca_obj = PCA(n_components=24)
+    pca_obj = model_factory.get_model("PCA")
     emb_mappings_pca = pca_obj.fit_transform(emb_matrix)
 
     emb_list_pca = []
@@ -119,7 +110,6 @@ def calculate(min_degree, file_path="graph.graph"):
     
     for key, value in methods.items():
         val_roc, val_ap, test_roc, test_ap = link_prediction_on_embedding(value)
-
         methods_list.append(MethodResult(key, test_roc, test_ap))
     
     result = LatexResults(adj_sparse.shape[0], len(train_edges), len(test_edges), methods_list)
@@ -128,7 +118,6 @@ def calculate(min_degree, file_path="graph.graph"):
         file.write(result.get_latex_representation())
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--min_degree', type=int)
     args = parser.parse_args()

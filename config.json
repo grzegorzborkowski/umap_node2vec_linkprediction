@@ -9,5 +9,13 @@
         "DIRECTED": "false",
         "WORKERS": 8,
         "ITER": 10
+    },
+    "UMAP": {
+        "n_neighbours" : 10,
+        "min_dist" : 0.03,
+        "n_components" : 24
+    },
+    "PCA": {
+        "n_components": 24
     }
 }

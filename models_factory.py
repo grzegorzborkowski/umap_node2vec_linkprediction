@@ -2,6 +2,8 @@ import abc
 import json
 import node2vec
 from gensim.models import Word2Vec
+import umap
+from sklearn.decomposition import PCA
 
 class AbstractModel(abc.ABC):
 
@@ -29,10 +31,33 @@ class Node2vecModel(AbstractModel):
             min_count=0, sg=1, workers=params['WORKERS'], iter=params['ITER'])
             return model
 
+class UMAPModel(AbstractModel):
+
+    def get_model(self):
+        with open(self.get_config_filename(), 'r') as f:
+            datastore = json.load(f)['UMAP']
+            umap_obj = umap.UMAP(n_neighbors=datastore['n_neighbours'], \
+                min_dist=datastore['min_dist'], n_components=datastore['n_components'])
+            return umap_obj
+
+class PCAModel(AbstractModel):
+
+    def get_model(self):
+        with open(self.get_config_filename(), 'r') as f:
+            components = json.load(f)['PCA']['n_components']
+            return PCA(n_components=components)
+
 class ModelFactory:
 
-    def get_model(self, model_name, g_train):
+    def __init__(self, g_train):
+        self.g_train = g_train
+
+    def get_model(self, model_name):
         if model_name == "node2vec":
-            return Node2vecModel().get_model(g_train)
+            return Node2vecModel().get_model(self.g_train)
+        if model_name == "UMAP":
+            return UMAPModel().get_model()
+        if model_name == "PCA":
+            return PCAModel().get_model()
         else:
             raise ("Unknown model. Can't create")
