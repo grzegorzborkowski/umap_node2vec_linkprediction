@@ -6,6 +6,7 @@ import argparse
 from link_prediction_helpers import *
 from collections import namedtuple
 from models_factory import ModelFactory
+from PCA_analysis import *
 
 MethodResult = namedtuple('MethodResult', ['methodName', 'testROC', 'testPC'])
 
@@ -54,7 +55,7 @@ def calculate(min_degree, file_path="graph.graph"):
     pa_roc, pa_ap = get_roc_score(adj_sparse, test_edges, test_edges_false, pa_matrix)
 
     model_factory = ModelFactory(g_train)
-    model = model_factory.get_model("node2vec")
+    model = model_factory.get_model("node2vec_32")
     
     #TODO: refactor these three calls. Make a function out of it
     # Store embeddings mapping
@@ -66,7 +67,7 @@ def calculate(min_degree, file_path="graph.graph"):
         emb_list.append(node_emb)
     emb_matrix = np.vstack(emb_list)
     
-    umap_obj = model_factory.get_model("UMAP")
+    umap_obj = model_factory.get_model("UMAP_16")
     emb_mappings_umap = umap_obj.fit_transform(emb_matrix)
 
     emb_list_umap = []
@@ -75,14 +76,27 @@ def calculate(min_degree, file_path="graph.graph"):
         emb_list_umap.append(node_emb)
     emb_matrix_umap = np.vstack(emb_list_umap)
 
-    pca_obj = model_factory.get_model("PCA")
+    pca_obj = model_factory.get_model("PCA_16")
     emb_mappings_pca = pca_obj.fit_transform(emb_matrix)
+
+    pca_analysis = PCA_analysis(pca_obj)
+    pca_analysis.print_analysis()
 
     emb_list_pca = []
     for node_index in range(0, adj_sparse.shape[0]):
         node_emb = emb_mappings_pca[node_index]
         emb_list_pca.append(node_emb)
     emb_matrix_pca = np.vstack(emb_list_pca)
+
+
+    node2vec16_model = model_factory.get_model("node2vec_16")
+    emb_mappings_node2vec16 = node2vec16_model.wv
+    emb_list_node2vec_16 = []
+    for node_index in range(0, adj_sparse.shape[0]):
+        node_str = str(node_index)
+        node_emb = emb_mappings_node2vec16[node_str]
+        emb_list_node2vec_16.append(node_emb)
+    emb_matrix_node2vec16 = np.vstack(emb_list_node2vec_16)
 
     lp_arg = LP_arguments(emb_mappings=emb_mappings, adj_sparse = adj_sparse, train_edges = train_edges, \
      train_edges_false = train_edges_false, val_edges = val_edges, val_edges_false = val_edges_false, \
@@ -96,8 +110,13 @@ def calculate(min_degree, file_path="graph.graph"):
      train_edges_false = train_edges_false, val_edges = val_edges, val_edges_false = val_edges_false, \
      test_edges = test_edges, test_edges_false = test_edges_false, matrix=emb_matrix_pca)
     
+    lp_arg_node2vec16 = LP_arguments(emb_mappings=emb_mappings_node2vec16, adj_sparse=adj_sparse,
+    train_edges = train_edges, train_edges_false = train_edges_false, val_edges = val_edges, val_edges_false = val_edges_false, \
+     test_edges = test_edges, test_edges_false = test_edges_false, matrix=emb_matrix_node2vec16)
+
     methods = {
-        "node2vec" : lp_arg,
+        "node2vec_32" : lp_arg,
+        "node2vec_16" : lp_arg_node2vec16,
         "node2vec+UMAP" : lp_arg_umap,
         "node2vec+PCA": lp_arg_pca
     }

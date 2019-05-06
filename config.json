@@ -1,5 +1,5 @@
 {
-    "node2vec": {
+    "node2vec_32": {
         "P" : 1,
         "Q" : 1,
         "WINDOW_SIZE": 1,
@@ -10,12 +10,23 @@
         "WORKERS": 8,
         "ITER": 10
     },
-    "UMAP": {
+    "UMAP_16": {
         "n_neighbours" : 10,
         "min_dist" : 0.03,
-        "n_components" : 24
+        "n_components" : 16
     },
-    "PCA": {
-        "n_components": 24
+    "PCA_16": {
+        "n_components": 16
+    },
+    "node2vec_16": {
+        "P" : 1,
+        "Q" : 1,
+        "WINDOW_SIZE": 1,
+        "NUM_WALKS": 20,
+        "WALK_LENGTH": 5,
+        "DIMENSIONS": 16,
+        "DIRECTED": "false",
+        "WORKERS": 8,
+        "ITER": 10
     }
 }
