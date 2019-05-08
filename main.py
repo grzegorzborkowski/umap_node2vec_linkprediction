@@ -1,5 +1,4 @@
 import networkx as nx
-import scipy.sparse as sp
 import numpy as np
 from LP_arguments import LP_arguments
 import argparse
@@ -28,7 +27,7 @@ def calculate(min_degree, file_path="graph.graph"):
     for u, v, p in nx.adamic_adar_index(g_train): # (u, v) = node indices, p = Adamic-Adar index
         aa_matrix[u][v] = p
         aa_matrix[v][u] = p # make sure it's symmetric
-    
+
     # Normalize array
     aa_matrix = aa_matrix / aa_matrix.max()
     aa_roc, aa_ap = get_roc_score(adj_sparse, test_edges, test_edges_false, aa_matrix)
@@ -130,8 +129,16 @@ def calculate(min_degree, file_path="graph.graph"):
     for key, value in methods.items():
         val_roc, val_ap, test_roc, test_ap = link_prediction_on_embedding(value)
         methods_list.append(MethodResult(key, test_roc, test_ap))
-    
-    result = LatexResults(adj_sparse.shape[0], len(train_edges), len(test_edges), methods_list)
+
+    if file_path == "graph.graph":
+        caption = "Link prediction on Wikipedia dataset containing"
+    elif file_path == "soc_hamsterster.edges":
+        caption = "Link prediction on network of the friendships between users of hamsterster.com"
+    elif file_path == "external_graph.csv":
+        caption = "Link prediction on DBLP dataset"
+    else:
+        caption = "Unknown caption"
+    result = LatexResults(adj_sparse.shape[0], len(train_edges), len(test_edges), methods_list, caption)
     
     with open("results.txt", "a") as file:
         file.write(result.get_latex_representation())
@@ -139,6 +146,7 @@ def calculate(min_degree, file_path="graph.graph"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--min_degree', type=int)
+    parser.add_argument('--dataset_path', type=str)
     args = parser.parse_args()
     args = vars(args)
-    calculate(args['min_degree'])
+    calculate(args['min_degree'], file_path=args['dataset_path'])

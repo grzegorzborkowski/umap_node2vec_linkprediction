@@ -16,6 +16,7 @@ import numpy as np
 import networkx as nx
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
+from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from LatexGenerator import *
 
@@ -254,7 +255,8 @@ def link_prediction_on_embedding(lp_arg):
     test_edge_labels = np.concatenate([np.ones(len(test_edges)), np.zeros(len(test_edges_false))])
 
     # Train logistic regression classifier on train-set edge embeddings
-    edge_classifier = LogisticRegression(random_state=0)
+    #edge_classifier = LogisticRegression(random_state=0)
+    edge_classifier = SVC(probability=True)
     edge_classifier.fit(train_edge_embs, train_edge_labels)
 
     # Predicted edge scores: probability of being of class "1" (real edge)

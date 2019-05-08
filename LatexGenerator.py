@@ -1,11 +1,11 @@
 class LatexResults():
 
-    def __init__(self, number_of_nodes, training_edges, test_edges, list_of_methods_result):
+    def __init__(self, number_of_nodes, training_edges, test_edges, list_of_methods_result, caption):
         self.number_of_nodes = number_of_nodes
         self.training_edges = training_edges
         self.test_edges = test_edges
         self.list_of_methods_result = list_of_methods_result
-        self.caption = "Link prediction on Wikipedia dataset containing"
+        self.caption = caption
     
     def get_latex_representation(self):
         begining = """
