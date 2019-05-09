@@ -259,6 +259,17 @@ def link_prediction_on_embedding(lp_arg):
     edge_classifier = SVC(probability=True)
     edge_classifier.fit(train_edge_embs, train_edge_labels)
 
+
+    import lime
+    import lime.lime_tabular
+    explainer = lime.lime_tabular.LimeTabularExplainer(train_edge_embs)
+    exp = explainer.explain_instance(test_edge_embs[0], edge_classifier.predict_proba)
+    print(exp.as_list())
+    exp.as_pyplot_figure()
+    from matplotlib import pyplot as plt
+    plt.tight_layout()
+    plt.show()
+
     # Predicted edge scores: probability of being of class "1" (real edge)
     val_preds = edge_classifier.predict_proba(val_edge_embs)[:, 1]
     val_roc = roc_auc_score(val_edge_labels, val_preds)
