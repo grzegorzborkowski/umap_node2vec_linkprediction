@@ -18,6 +18,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
+import tqdm
 from LatexGenerator import *
 
 def sparse_to_tuple(sparse_mx):
@@ -259,16 +260,40 @@ def link_prediction_on_embedding(lp_arg):
     edge_classifier = SVC(probability=True)
     edge_classifier.fit(train_edge_embs, train_edge_labels)
 
-
     import lime
     import lime.lime_tabular
-    explainer = lime.lime_tabular.LimeTabularExplainer(train_edge_embs)
-    exp = explainer.explain_instance(test_edge_embs[0], edge_classifier.predict_proba)
-    print(exp.as_list())
-    exp.as_pyplot_figure()
-    from matplotlib import pyplot as plt
-    plt.tight_layout()
-    plt.show()
+
+    id_to_importance_dict = {}
+    for i in range(len(test_edge_embs[0])):
+        id_to_importance_dict[i] = 0
+
+    explainer = lime.lime_tabular.LimeTabularExplainer(train_edge_embs,training_labels=train_edge_labels)
+    # print('number of test edge - embs: ' + str(len(test_edge_embs)))
+    # print('number of train edge - embs: ' + str(len(train_edge_embs)))
+
+    for emb in tqdm.tqdm(test_edge_embs[:1000]):
+        exp = explainer.explain_instance(emb, edge_classifier.predict_proba)
+        exps = exp.as_list()
+        for feature_exp in exps:
+            feature_equation = feature_exp[0]
+            importance = abs(feature_exp[1])
+            # print(feature_exp)
+            if len(feature_equation.split(' ')) == 3: # "5 <= 0.99"
+                feature = int(feature_equation.split(' ')[0])
+            else: # "0.75 < 5 < 5.99"
+                feature = int(feature_equation.split(' ')[2])
+            # print(feature)
+            # print(importance)
+            id_to_importance_dict[feature] += importance
+
+    for feature,importance in sorted(id_to_importance_dict.items(), key=lambda p:p[1], reverse=True):
+        print(feature,importance)
+    print('\n')
+
+    # exp.as_pyplot_figure()
+    # from matplotlib import pyplot as plt
+    # plt.tight_layout()
+    # plt.show()
 
     # Predicted edge scores: probability of being of class "1" (real edge)
     val_preds = edge_classifier.predict_proba(val_edge_embs)[:, 1]
