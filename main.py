@@ -6,6 +6,7 @@ from link_prediction_helpers import *
 from collections import namedtuple
 from models_factory import ModelFactory
 from PCA_analysis import *
+from LatexGenerator import *
 
 MethodResult = namedtuple('MethodResult', ['methodName', 'testROC', 'testPC'])
 
@@ -127,7 +128,7 @@ def calculate(min_degree, file_path="graph.graph"):
     methods_list = [adamic_adard_result, jc_result, pa_result]
     
     for key, value in methods.items():
-        val_roc, val_ap, test_roc, test_ap = link_prediction_on_embedding(value)
+        val_roc, val_ap, test_roc, test_ap = link_prediction_on_embedding(key, value)
         methods_list.append(MethodResult(key, test_roc, test_ap))
 
     if file_path == "graph.graph":

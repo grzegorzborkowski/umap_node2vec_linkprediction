@@ -220,7 +220,7 @@ def get_roc_score(adj_sparse, edges_pos, edges_neg, score_matrix):
     return roc_score, ap_score
 
 
-def link_prediction_on_embedding(lp_arg):
+def link_prediction_on_embedding(method_name, lp_arg):
     emb_mappings = lp_arg.emb_mappings
     adj_sparse = lp_arg.adj_sparse
     train_edges = lp_arg.train_edges
@@ -259,8 +259,8 @@ def link_prediction_on_embedding(lp_arg):
     edge_classifier.fit(train_edge_embs, train_edge_labels)
 
     lime_explainer = LimeExplainer.LimeExplainer(
-        edge_classifier, train_edge_embs, train_edge_labels, test_edge_embs)
-    print(lime_explainer.get_explanations())
+        method_name, edge_classifier, train_edge_embs, train_edge_labels, test_edge_embs)
+    lime_explainer.get_explanations()
 
     # Predicted edge scores: probability of being of class "1" (real edge)
     val_preds = edge_classifier.predict_proba(val_edge_embs)[:, 1]
