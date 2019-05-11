@@ -2,6 +2,7 @@ import lime.lime_tabular
 import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib
 
 class LimeExplainerPlotter():
 
@@ -18,6 +19,7 @@ class LimeExplainerPlotter():
         self.plot_titles = []
 
     def plot_feature_importance(self):
+        matplotlib.use('Agg')
         max_value = -1000
         for idx in range(0, len(self.lime_explainer_results)):
             for _, importance in self.id_to_importance_dict[idx].items():
@@ -30,13 +32,15 @@ class LimeExplainerPlotter():
                 x_values.append((importance/self.importance_sum[model_id])*100)
             self.all_x_values.append(x_values)
             self.plot_titles.append(self.method_names[model_id])
+            fig = plt.figure(figsize=(5,5))
             plt.title(self.method_names[model_id])
             plt.xlabel('Feature number')
             plt.ylabel('Importance of feature \n - percentage of classifier decision making (%)')
             plt.bar(np.arange(len(self.all_x_values[model_id])), self.all_x_values[model_id], width=0.25)
             plt.xticks(np.arange(0, len(self.all_x_values[model_id])+1, step=2))
             plt.yticks(np.arange(0, max_value+6, step=5))
-            plt.show()
+            plt.savefig(str(self.method_names[model_id]))
+            plt.close(fig)
 
 class LimeExplainer():
 
@@ -61,7 +65,7 @@ class LimeExplainer():
         print (self.method_name)
         print ("----------------------------------------")
         importance_sum = 0
-        for emb in tqdm.tqdm(self.test_edge_embs[:10]):
+        for emb in tqdm.tqdm(self.test_edge_embs[:100]):
             exp = self.explainer.explain_instance(emb, self.edge_classifier.predict_proba)
             exps = exp.as_list()
 
