@@ -260,24 +260,29 @@ def link_prediction_on_embedding(lp_arg):
     edge_classifier = SVC(probability=True)
     edge_classifier.fit(train_edge_embs, train_edge_labels)
 
-    import lime
     import lime.lime_tabular
 
     id_to_importance_dict = {}
+    id_to_occurs_in_top_5 = {}
     for i in range(len(test_edge_embs[0])):
         id_to_importance_dict[i] = 0
+        id_to_occurs_in_top_5[i] = 0
 
     explainer = lime.lime_tabular.LimeTabularExplainer(train_edge_embs,training_labels=train_edge_labels)
     # print('number of test edge - embs: ' + str(len(test_edge_embs)))
     # print('number of train edge - embs: ' + str(len(train_edge_embs)))
 
-    for emb in tqdm.tqdm(test_edge_embs[:1000]):
+    importance_sum = 0
+    for emb in tqdm.tqdm(test_edge_embs[:100]):
         exp = explainer.explain_instance(emb, edge_classifier.predict_proba)
         exps = exp.as_list()
-        for feature_exp in exps:
+
+        for i in range(len(exps)):
+            feature_exp = exps[i]
             feature_equation = feature_exp[0]
             importance = abs(feature_exp[1])
             # print(feature_exp)
+            #print (feature_equation)
             if len(feature_equation.split(' ')) == 3: # "5 <= 0.99"
                 feature = int(feature_equation.split(' ')[0])
             else: # "0.75 < 5 < 5.99"
@@ -285,15 +290,13 @@ def link_prediction_on_embedding(lp_arg):
             # print(feature)
             # print(importance)
             id_to_importance_dict[feature] += importance
+            if i < 5:
+                id_to_occurs_in_top_5[feature] += 1
+            importance_sum += importance
 
     for feature,importance in sorted(id_to_importance_dict.items(), key=lambda p:p[1], reverse=True):
-        print(feature,importance)
-    print('\n')
-
-    # exp.as_pyplot_figure()
-    # from matplotlib import pyplot as plt
-    # plt.tight_layout()
-    # plt.show()
+        print(str(feature)+': '+str(importance/importance_sum)+', in top 5: '+str(id_to_occurs_in_top_5[feature]))
+    print('importance sum: ' + str(importance_sum) + '\n')
 
     # Predicted edge scores: probability of being of class "1" (real edge)
     val_preds = edge_classifier.predict_proba(val_edge_embs)[:, 1]
@@ -306,7 +309,6 @@ def link_prediction_on_embedding(lp_arg):
     test_ap = average_precision_score(test_edge_labels, test_preds)
 
     return val_roc, val_ap, test_roc, test_ap
-
 
     # Generate bootstrapped edge embeddings (as is done in node2vec paper)
     # Edge embedding for (v1, v2) = hadamard product of node embeddings for v1, v2

@@ -1,4 +1,4 @@
-class LatexResults():
+class LatexModelAccuracyResults():
 
     def __init__(self, number_of_nodes, training_edges, test_edges, list_of_methods_result, caption):
         self.number_of_nodes = number_of_nodes
@@ -30,3 +30,5 @@ class LatexResults():
 
     def get_row_latex_repr(self, methodResult):
         return "{} & {:.4f} & {:.4f} \\\ \\hline \n".format(methodResult.methodName, methodResult.testROC, methodResult.testPC)
+
+

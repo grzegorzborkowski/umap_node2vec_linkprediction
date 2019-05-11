@@ -138,7 +138,7 @@ def calculate(min_degree, file_path="graph.graph"):
         caption = "Link prediction on DBLP dataset"
     else:
         caption = "Unknown caption"
-    result = LatexResults(adj_sparse.shape[0], len(train_edges), len(test_edges), methods_list, caption)
+    result = LatexModelAccuracyResults(adj_sparse.shape[0], len(train_edges), len(test_edges), methods_list, caption)
     
     with open("results.txt", "a") as file:
         file.write(result.get_latex_representation())
