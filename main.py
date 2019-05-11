@@ -126,10 +126,14 @@ def calculate(min_degree, file_path="graph.graph"):
     pa_result = MethodResult('Preferential Attachment', pa_roc, pa_ap)
 
     methods_list = [adamic_adard_result, jc_result, pa_result]
-    
+    lime_results = []
     for key, value in methods.items():
-        val_roc, val_ap, test_roc, test_ap = link_prediction_on_embedding(key, value)
+        val_roc, val_ap, test_roc, test_ap, lime_explanations = link_prediction_on_embedding(key, value)
         methods_list.append(MethodResult(key, test_roc, test_ap))
+        lime_results.append(lime_explanations)
+
+    lime_plotter = LimeExplainer.LimeExplainerPlotter(lime_results)
+    lime_plotter.plot_feature_importance()
 
     if file_path == "graph.graph":
         caption = "Link prediction on Wikipedia dataset containing"

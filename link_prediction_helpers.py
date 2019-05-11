@@ -260,7 +260,7 @@ def link_prediction_on_embedding(method_name, lp_arg):
 
     lime_explainer = LimeExplainer.LimeExplainer(
         method_name, edge_classifier, train_edge_embs, train_edge_labels, test_edge_embs)
-    lime_explainer.get_explanations()
+    lime_explanations = lime_explainer.get_explanations()
 
     # Predicted edge scores: probability of being of class "1" (real edge)
     val_preds = edge_classifier.predict_proba(val_edge_embs)[:, 1]
@@ -272,7 +272,7 @@ def link_prediction_on_embedding(method_name, lp_arg):
     test_roc = roc_auc_score(test_edge_labels, test_preds)
     test_ap = average_precision_score(test_edge_labels, test_preds)
 
-    return val_roc, val_ap, test_roc, test_ap
+    return val_roc, val_ap, test_roc, test_ap, lime_explanations
 
     # Generate bootstrapped edge embeddings (as is done in node2vec paper)
     # Edge embedding for (v1, v2) = hadamard product of node embeddings for v1, v2

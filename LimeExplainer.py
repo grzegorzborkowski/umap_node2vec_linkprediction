@@ -6,19 +6,37 @@ import numpy as np
 class LimeExplainerPlotter():
 
     def __init__(self, lime_explainer_results):
-        self.method_name = lime_explainer_results.method_name
-        self.id_to_importance_dict = lime_explainer_results.id_to_importance_dict
-        self.id_to_occurs_in_top_5 = lime_explainer_results.id_to_occurs_in_top_5
-        self.importance_sum = lime_explainer_results.importance_sum
+        self.lime_explainer_results = lime_explainer_results
+        self.method_names, self.id_to_importance_dict, self.id_to_occurs_in_top_5, self.importance_sum = \
+            [], [], [], []
+        for lime_explain_result in lime_explainer_results:
+            self.method_names.append(lime_explain_result.method_name)
+            self.id_to_importance_dict.append(lime_explain_result.id_to_importance_dict)
+            self.id_to_occurs_in_top_5.append(lime_explain_result.id_to_occurs_in_top_5)
+            self.importance_sum.append(lime_explain_result.importance_sum)
+        self.all_x_values = []
+        self.plot_titles = []
 
     def plot_feature_importance(self):
-        x_values = []
-        for feature, importance in sorted(self.id_to_importance_dict.items(), key=lambda p:p[1], reverse=True):
-            print(str(feature)+': '+str((importance/self.importance_sum)*100)+', in top 5: '+str(self.id_to_occurs_in_top_5[feature]))
-            x_values.append((importance/self.importance_sum)*100)
-        plt.title(self.method_name)
-        plt.bar(np.arange(len(x_values)), x_values)
-        plt.show()
+        max_value = -1000
+        for idx in range(0, len(self.lime_explainer_results)):
+            for _, importance in self.id_to_importance_dict[idx].items():
+                max_value = max(max_value, (importance/self.importance_sum[idx])*100)
+
+        for model_id in range(0, len(self.lime_explainer_results)):
+            x_values = []
+            for feature, importance in sorted(self.id_to_importance_dict[model_id].items(), key=lambda p:p[1], reverse=True):
+                print(str(feature)+': '+str((importance/self.importance_sum[model_id])*100)+', in top 5: '+str(self.id_to_occurs_in_top_5[model_id][feature]))
+                x_values.append((importance/self.importance_sum[model_id])*100)
+            self.all_x_values.append(x_values)
+            self.plot_titles.append(self.method_names[model_id])
+            plt.title(self.method_names[model_id])
+            plt.xlabel('Feature number')
+            plt.ylabel('Importance of feature \n - percentage of classifier decision making (%)')
+            plt.bar(np.arange(len(self.all_x_values[model_id])), self.all_x_values[model_id], width=0.25)
+            plt.xticks(np.arange(0, len(self.all_x_values[model_id])+1, step=2))
+            plt.yticks(np.arange(0, max_value+6, step=5))
+            plt.show()
 
 class LimeExplainer():
 
@@ -43,7 +61,7 @@ class LimeExplainer():
         print (self.method_name)
         print ("----------------------------------------")
         importance_sum = 0
-        for emb in tqdm.tqdm(self.test_edge_embs[:100]):
+        for emb in tqdm.tqdm(self.test_edge_embs[:10]):
             exp = self.explainer.explain_instance(emb, self.edge_classifier.predict_proba)
             exps = exp.as_list()
 
@@ -61,8 +79,7 @@ class LimeExplainer():
                 importance_sum += importance
 
         result = LimeExplainerResults(self.method_name, self.id_to_importance_dict, self.id_to_occurs_in_top_5, importance_sum)
-        explainer = LimeExplainerPlotter(result)
-        explainer.plot_feature_importance()
+        return result
 
 
 class LimeExplainerResults():
