@@ -5,11 +5,11 @@ import numpy as np
 
 class LimeExplainerPlotter():
 
-    def __init__(self, method_name, id_to_importance_dict, id_to_occurs_in_top_5, importance_sum):
-        self.method_name = method_name
-        self.id_to_importance_dict = id_to_importance_dict
-        self.importance_sum = importance_sum
-        self.id_to_occurs_in_top_5 = id_to_occurs_in_top_5
+    def __init__(self, lime_explainer_results):
+        self.method_name = lime_explainer_results.method_name
+        self.id_to_importance_dict = lime_explainer_results.id_to_importance_dict
+        self.id_to_occurs_in_top_5 = lime_explainer_results.id_to_occurs_in_top_5
+        self.importance_sum = lime_explainer_results.importance_sum
 
     def plot_feature_importance(self):
         x_values = []
@@ -60,6 +60,15 @@ class LimeExplainer():
                     self.id_to_occurs_in_top_5[feature] += 1
                 importance_sum += importance
 
-        explainer = LimeExplainerPlotter(self.method_name, self.id_to_importance_dict, self.id_to_occurs_in_top_5, importance_sum)
+        result = LimeExplainerResults(self.method_name, self.id_to_importance_dict, self.id_to_occurs_in_top_5, importance_sum)
+        explainer = LimeExplainerPlotter(result)
         explainer.plot_feature_importance()
 
+
+class LimeExplainerResults():
+
+    def __init__(self, method_name, id_to_importance_dict, id_to_occurs_in_top_5, importance_sum):
+        self.method_name = method_name
+        self.id_to_importance_dict = id_to_importance_dict
+        self.importance_sum = importance_sum
+        self.id_to_occurs_in_top_5 = id_to_occurs_in_top_5
