@@ -17,6 +17,7 @@ import networkx as nx
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
 from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
 import LimeExplainer
 
 def sparse_to_tuple(sparse_mx):
@@ -220,7 +221,7 @@ def get_roc_score(adj_sparse, edges_pos, edges_neg, score_matrix):
     return roc_score, ap_score
 
 
-def link_prediction_on_embedding(method_name, lp_arg):
+def link_prediction_on_embedding(method_name, lp_arg, lime=False, classifier='SVM'):
     emb_mappings = lp_arg.emb_mappings
     adj_sparse = lp_arg.adj_sparse
     train_edges = lp_arg.train_edges
@@ -254,14 +255,18 @@ def link_prediction_on_embedding(method_name, lp_arg):
     test_edge_labels = np.concatenate([np.ones(len(test_edges)), np.zeros(len(test_edges_false))])
 
     # Train logistic regression classifier on train-set edge embeddings
-    #edge_classifier = LogisticRegression(random_state=0)
-    edge_classifier = SVC(probability=True)
+    if classifier == 'SVM':
+        edge_classifier = SVC(probability=True)
+    else:
+        edge_classifier = LogisticRegression(random_state=0)
+
     edge_classifier.fit(train_edge_embs, train_edge_labels)
-
-    lime_explainer = LimeExplainer.LimeExplainer(
-        method_name, edge_classifier, train_edge_embs, train_edge_labels, test_edge_embs)
-    lime_explanations = lime_explainer.get_explanations()
-
+    if lime:
+        lime_explainer = LimeExplainer.LimeExplainer(
+            method_name, edge_classifier, train_edge_embs, train_edge_labels, test_edge_embs)
+        lime_explanations = lime_explainer.get_explanations()
+    else:
+        lime_explanations = []
     # Predicted edge scores: probability of being of class "1" (real edge)
     val_preds = edge_classifier.predict_proba(val_edge_embs)[:, 1]
     val_roc = roc_auc_score(val_edge_labels, val_preds)

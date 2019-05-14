@@ -10,7 +10,7 @@ from LatexGenerator import *
 
 MethodResult = namedtuple('MethodResult', ['methodName', 'testROC', 'testPC'])
 
-def calculate(min_degree, file_path="graph.graph"):
+def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM'):
     graph = nx.read_edgelist(file_path, delimiter=" ")
     nodes = [node for node, degree in graph.degree().items() if degree >= min_degree]
     graph = graph.subgraph(nodes)
@@ -115,25 +115,30 @@ def calculate(min_degree, file_path="graph.graph"):
      test_edges = test_edges, test_edges_false = test_edges_false, matrix=emb_matrix_node2vec16)
 
     methods = {
-        "node2vec_32" : lp_arg,
-        "node2vec_16" : lp_arg_node2vec16,
-        "node2vec+UMAP" : lp_arg_umap,
-        "node2vec+PCA": lp_arg_pca
+        "node2vec (32)" : lp_arg,
+        "node2vec (16)" : lp_arg_node2vec16,
+        "node2vec+UMAP (16)" : lp_arg_umap,
+        "node2vec+PCA (16)": lp_arg_pca
     }
     
     adamic_adard_result = MethodResult('Adamic-Adar', aa_roc, aa_ap)
     jc_result = MethodResult('Jaccard Coefficient', jc_roc, jc_ap)
     pa_result = MethodResult('Preferential Attachment', pa_roc, pa_ap)
+    lime = False
+    if analyse in ['y', 'yes', 'true']:
+        lime = True
 
     methods_list = [adamic_adard_result, jc_result, pa_result]
     lime_results = []
     for key, value in methods.items():
-        val_roc, val_ap, test_roc, test_ap, lime_explanations = link_prediction_on_embedding(key, value)
+        val_roc, val_ap, test_roc, test_ap, lime_explanations = link_prediction_on_embedding(key, value, lime, classifier)
         methods_list.append(MethodResult(key, test_roc, test_ap))
         lime_results.append(lime_explanations)
 
-    lime_plotter = LimeExplainer.LimeExplainerPlotter(lime_results)
-    lime_plotter.plot_feature_importance()
+    if lime:
+        lime_plotter = LimeExplainer.LimeExplainerPlotter(lime_results)
+        lime_plotter.plot_feature_importance()
+
 
     if file_path == "graph.graph":
         caption = "Link prediction on Wikipedia dataset containing"
@@ -152,6 +157,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--min_degree', type=int)
     parser.add_argument('--dataset_path', type=str)
+    parser.add_argument('--analyse', type=str)
+    parser.add_argument('--classifier', type=str)
     args = parser.parse_args()
     args = vars(args)
-    calculate(args['min_degree'], file_path=args['dataset_path'])
+    if args['classifier'] not in ['SVM', 'LR']:
+        print ("Unknown classifier, please use SVM or LR (SVM default)")
+        import sys
+        sys.exit()
+    calculate(args['min_degree'], file_path=args['dataset_path'], analyse=args['analyse'], classifier=args['classifier'])
+

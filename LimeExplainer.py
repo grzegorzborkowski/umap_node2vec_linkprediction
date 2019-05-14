@@ -34,7 +34,7 @@ class LimeExplainerPlotter():
             self.plot_titles.append(self.method_names[model_id])
             fig = plt.figure(figsize=(5,5))
             plt.title(self.method_names[model_id])
-            plt.xlabel('Feature number')
+            plt.xlabel('Feature id (ordered by the importance)')
             plt.ylabel('Importance of feature \n - percentage of classifier decision making (%)')
             plt.bar(np.arange(len(self.all_x_values[model_id])), self.all_x_values[model_id], width=0.25)
             plt.xticks(np.arange(0, len(self.all_x_values[model_id])+1, step=2))
