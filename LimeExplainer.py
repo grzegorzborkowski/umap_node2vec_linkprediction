@@ -17,9 +17,10 @@ class LimeExplainerPlotter():
             self.importance_sum.append(lime_explain_result.importance_sum)
         self.all_x_values = []
         self.plot_titles = []
+        matplotlib.use('Agg')
+        
 
     def plot_feature_importance(self):
-        matplotlib.use('Agg')
         max_value = -1000
         for idx in range(0, len(self.lime_explainer_results)):
             for _, importance in self.id_to_importance_dict[idx].items():
@@ -28,13 +29,13 @@ class LimeExplainerPlotter():
         for model_id in range(0, len(self.lime_explainer_results)):
             x_values = []
             for feature, importance in sorted(self.id_to_importance_dict[model_id].items(), key=lambda p:p[1], reverse=True):
-                print(str(feature)+': '+str((importance/self.importance_sum[model_id])*100)+', in top 5: '+str(self.id_to_occurs_in_top_5[model_id][feature]))
+                #print(str(feature)+': '+str((importance/self.importance_sum[model_id])*100)+', in top 5: '+str(self.id_to_occurs_in_top_5[model_id][feature]))
                 x_values.append((importance/self.importance_sum[model_id])*100)
             self.all_x_values.append(x_values)
             self.plot_titles.append(self.method_names[model_id])
             fig = plt.figure(figsize=(5,5))
             plt.title(self.method_names[model_id])
-            plt.xlabel('Feature id (ordered by the importance)')
+            plt.xlabel('Feature (ordered by the importance)')
             plt.ylabel('Importance of feature \n - percentage of classifier decision making (%)')
             plt.bar(np.arange(len(self.all_x_values[model_id])), self.all_x_values[model_id], width=0.25)
             plt.xticks(np.arange(0, len(self.all_x_values[model_id])+1, step=2))
