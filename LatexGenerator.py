@@ -31,4 +31,38 @@ class LatexModelAccuracyResults():
     def get_row_latex_repr(self, methodResult):
         return "{} & {:.4f} & {:.4f} \\\ \\hline \n".format(methodResult.methodName, methodResult.testROC, methodResult.testPC)
 
+class LatexModelTimeResults():
+
+    def __init__(self, list_of_method_time, number_of_nodes, training_edges, caption):
+        self.list_of_method_time = list_of_method_time
+        self.number_of_nodes = number_of_nodes
+        self.training_edges = training_edges
+        self.caption = caption
+
+    def get_latex_representation(self):
+        beginning = """
+        \\begin{table}[H]
+        \\centering
+        \\begin{tabular}{|l|c|}
+        \\hline
+        \\textbf{Name of the method} & \\textbf{Training time (s)} \\\ \hline
+        """
+
+        end_tabular = """\end{tabular}"""
+        end = """
+            \end{table}
+        """
+
+        caption_txt = "{} {} nodes. {} training edges".format(self.caption, self.number_of_nodes, self.training_edges)
+
+        caption = "\caption{" + caption_txt + "}"
+
+        rows = " ".join([self.get_row_latex_repr(method) for method in self.list_of_method_time])
+
+        return beginning + rows + end_tabular + caption + end
+
+    def get_row_latex_repr(self, methodTime):
+        return "{} & {:.4f} \\\ \\hline \n".format(methodTime.methodName, methodTime.time)
+
+
 

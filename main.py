@@ -9,6 +9,7 @@ from PCA_analysis import *
 from LatexGenerator import *
 
 MethodResult = namedtuple('MethodResult', ['methodName', 'testROC', 'testPC'])
+MethodTime = namedtuple('MethodTime', ['methodName', 'time'])
 
 def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM'):
     graph = nx.read_edgelist(file_path, delimiter=" ")
@@ -53,12 +54,17 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
 
     # Calculate ROC AUC and Average Precision
     pa_roc, pa_ap = get_roc_score(adj_sparse, test_edges, test_edges_false, pa_matrix)
-
+    import time
+    time_before_node2vec32 = time.time()
     model_factory = ModelFactory(g_train)
     model = model_factory.get_model("node2vec_32")
-    
+    time_after_node2vec32 = time.time()
+
+    node2vec32_time = time_after_node2vec32 - time_before_node2vec32
+
     #TODO: refactor these three calls. Make a function out of it
     # Store embeddings mapping
+    time_before_stacking_embedding = time.time()
     emb_mappings = model.wv
     emb_list = []
     for node_index in range(0, adj_sparse.shape[0]):
@@ -66,21 +72,27 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
         node_emb = emb_mappings[node_str]
         emb_list.append(node_emb)
     emb_matrix = np.vstack(emb_list)
-    
+    time_after_stacking_embedding = time.time()
+    time_before_UMAP16 = time.time()
     umap_obj = model_factory.get_model("UMAP_16")
     emb_mappings_umap = umap_obj.fit_transform(emb_matrix)
+    time_after_UMAP16 = time.time()
+
+    umap16_time = time_after_UMAP16 - time_before_UMAP16
 
     emb_list_umap = []
     for node_index in range(0, adj_sparse.shape[0]):
         node_emb = emb_mappings_umap[node_index]
         emb_list_umap.append(node_emb)
     emb_matrix_umap = np.vstack(emb_list_umap)
-
+    time_before_PCA = time.time()
     pca_obj = model_factory.get_model("PCA_16")
     emb_mappings_pca = pca_obj.fit_transform(emb_matrix)
-
+    time_after_PCA = time.time()
     pca_analysis = PCA_analysis(pca_obj)
     pca_analysis.print_analysis()
+
+    pca16_time = time_after_PCA - time_before_PCA
 
     emb_list_pca = []
     for node_index in range(0, adj_sparse.shape[0]):
@@ -88,9 +100,13 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
         emb_list_pca.append(node_emb)
     emb_matrix_pca = np.vstack(emb_list_pca)
 
-
+    time_before_node2vec16 = time.time()
     node2vec16_model = model_factory.get_model("node2vec_16")
     emb_mappings_node2vec16 = node2vec16_model.wv
+    time_after_node2vec16 = time.time()
+
+    node2vec16_time = time_after_node2vec16 - time_before_node2vec16
+
     emb_list_node2vec_16 = []
     for node_index in range(0, adj_sparse.shape[0]):
         node_str = str(node_index)
@@ -152,6 +168,19 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
     
     with open("results.txt", "a") as file:
         file.write(result.get_latex_representation())
+
+    methods_time = [
+        MethodTime("nodevec (32)", node2vec32_time),
+        MethodTime("node2vec (16)", node2vec16_time),
+        MethodTime("node2vec+UMAP (16)", umap16_time),
+        MethodTime("node2vec+PCA (16)", pca16_time)
+    ]
+
+    time_results = LatexModelTimeResults(methods_time, adj_sparse.shape[0], len(train_edges),
+        "Time of the training of algorithms on Wikipedia dataset")
+
+    with open("time.txt", "a") as file:
+        file.write(time_results.get_latex_representation())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
