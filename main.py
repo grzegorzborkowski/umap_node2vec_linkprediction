@@ -5,7 +5,6 @@ import argparse
 from link_prediction_helpers import *
 from collections import namedtuple
 from models_factory import ModelFactory
-from PCA_analysis import *
 from LatexGenerator import *
 
 MethodResult = namedtuple('MethodResult', ['methodName', 'testROC', 'testPC'])
@@ -89,9 +88,7 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
     pca_obj = model_factory.get_model("PCA_16")
     emb_mappings_pca = pca_obj.fit_transform(emb_matrix)
     time_after_PCA = time.time()
-    pca_analysis = PCA_analysis(pca_obj)
-    pca_analysis.print_analysis()
-
+    
     pca16_time = time_after_PCA - time_before_PCA
 
     emb_list_pca = []

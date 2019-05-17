@@ -67,7 +67,7 @@ class LimeExplainer():
         print (self.method_name)
         print ("----------------------------------------")
         importance_sum = 0
-        for emb in tqdm.tqdm(self.test_edge_embs[:2]):
+        for emb in tqdm.tqdm(self.test_edge_embs[:100]):
             exp = self.explainer.explain_instance(emb, self.edge_classifier.predict_proba)
             exps = exp.as_list()
 
