@@ -1,6 +1,6 @@
 This code is mainly based on https://github.com/lucashu1/link-prediction
 
-
+```
 @misc{lucas_hu_2018_1408472,
    author       = {Lucas Hu and
                    Thomas Kipf and
@@ -12,6 +12,7 @@ This code is mainly based on https://github.com/lucashu1/link-prediction
    doi          = {10.5281/zenodo.1408472},
    url          = {https://doi.org/10.5281/zenodo.1408472}
 }
+```
 
 To install (you need conda)
 ```
@@ -23,4 +24,6 @@ pip install umap-learn
 ```
 
 To run:
+```
 bash run_experiments.sh
+```
