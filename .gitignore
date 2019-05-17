@@ -1,0 +1,6 @@
+plots/
+.idea/
+__pycache__/
+*.png
+*.txt
+*.graph

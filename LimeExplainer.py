@@ -6,7 +6,7 @@ import matplotlib
 
 class LimeExplainerPlotter():
 
-    def __init__(self, lime_explainer_results):
+    def __init__(self, lime_explainer_results, number_of_nodes):
         self.lime_explainer_results = lime_explainer_results
         self.method_names, self.id_to_importance_dict, self.id_to_occurs_in_top_5, self.importance_sum = \
             [], [], [], []
@@ -17,6 +17,7 @@ class LimeExplainerPlotter():
             self.importance_sum.append(lime_explain_result.importance_sum)
         self.all_x_values = []
         self.plot_titles = []
+        self.number_of_nodes = number_of_nodes
         matplotlib.use('Agg')
         
 
@@ -40,7 +41,7 @@ class LimeExplainerPlotter():
             plt.bar(np.arange(len(self.all_x_values[model_id])), self.all_x_values[model_id], width=0.25)
             plt.xticks(np.arange(0, len(self.all_x_values[model_id])+1, step=2))
             plt.yticks(np.arange(0, max_value+6, step=5))
-            plt.savefig(str(self.method_names[model_id]))
+            plt.savefig("plots/" + str(self.method_names[model_id]) + "_" + str(self.number_of_nodes))
             plt.close(fig)
 
 class LimeExplainer():
@@ -66,7 +67,7 @@ class LimeExplainer():
         print (self.method_name)
         print ("----------------------------------------")
         importance_sum = 0
-        for emb in tqdm.tqdm(self.test_edge_embs[:100]):
+        for emb in tqdm.tqdm(self.test_edge_embs[:2]):
             exp = self.explainer.explain_instance(emb, self.edge_classifier.predict_proba)
             exps = exp.as_list()
 

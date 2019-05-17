@@ -16,6 +16,3 @@ This code is mainly based on https://github.com/lucashu1/link-prediction
 
 To run:
 bash run_experiments.sh
-
-TODO(gborkowski):
-Add measuring time

@@ -152,7 +152,10 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
         lime_results.append(lime_explanations)
 
     if lime:
-        lime_plotter = LimeExplainer.LimeExplainerPlotter(lime_results)
+        import os
+        if not os.path.exists('plots'):
+            os.makedirs('plots')
+        lime_plotter = LimeExplainer.LimeExplainerPlotter(lime_results, adj_sparse.shape[0])
         lime_plotter.plot_feature_importance()
 
 
