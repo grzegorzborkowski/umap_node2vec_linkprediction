@@ -3,10 +3,13 @@ import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
+import seaborn as sns
+sns.set()
 
 class LimeExplainerPlotter():
 
     def __init__(self, lime_explainer_results, number_of_nodes):
+        plt.style.use('seaborn-paper')
         self.lime_explainer_results = lime_explainer_results
         self.method_names, self.id_to_importance_dict, self.id_to_occurs_in_top_5, self.importance_sum = \
             [], [], [], []
@@ -19,7 +22,7 @@ class LimeExplainerPlotter():
         self.plot_titles = []
         self.number_of_nodes = number_of_nodes
         matplotlib.use('Agg')
-        
+
 
     def plot_feature_importance(self):
         max_value = -1000
@@ -67,7 +70,7 @@ class LimeExplainer():
         print (self.method_name)
         print ("----------------------------------------")
         importance_sum = 0
-        for emb in tqdm.tqdm(self.test_edge_embs[:100]):
+        for emb in tqdm.tqdm(self.test_edge_embs[:1]):
             exp = self.explainer.explain_instance(emb, self.edge_classifier.predict_proba)
             exps = exp.as_list()
 

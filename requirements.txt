@@ -5,3 +5,4 @@ scipy
 gensim
 numpy
 scikit-learn
+seaborn
