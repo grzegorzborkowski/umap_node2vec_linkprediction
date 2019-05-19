@@ -5,7 +5,7 @@ import argparse
 from link_prediction_helpers import *
 from collections import namedtuple
 from models_factory import ModelFactory
-from LatexGenerator import *
+from ResultsWriter import *
 
 MethodResult = namedtuple('MethodResult', ['methodName', 'testROC', 'testPC'])
 MethodTime = namedtuple('MethodTime', ['methodName', 'time'])
@@ -164,10 +164,13 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
         caption = "Link prediction on DBLP dataset"
     else:
         caption = "Unknown caption"
-    result = LatexModelAccuracyResults(adj_sparse.shape[0], len(train_edges), len(test_edges), methods_list, caption)
+    result = ModelAccuracyResults(adj_sparse.shape[0], len(train_edges), len(test_edges), methods_list, caption, classifier)
     
-    with open("results.txt", "a") as file:
+    with open("latex_results.txt", "a") as file:
         file.write(result.get_latex_representation())
+
+    with open("csv_results.txt", "a") as file:
+        file.write(result.get_csv_representation())
 
     methods_time = [
         MethodTime("nodevec (32)", node2vec32_time),
@@ -176,11 +179,14 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
         MethodTime("node2vec+PCA (16)", pca16_time)
     ]
 
-    time_results = LatexModelTimeResults(methods_time, adj_sparse.shape[0], len(train_edges),
-        "Time of the training of algorithms on Wikipedia dataset")
+    time_results = ModelTimeResults(methods_time, adj_sparse.shape[0], len(train_edges), len(test_edges),
+        "Time of the training of algorithms on Wikipedia dataset", classifier)
 
-    with open("time.txt", "a") as file:
+    with open("latex_time.txt", "a") as file:
         file.write(time_results.get_latex_representation())
+
+    with open("csv_time.txt", "a") as file:
+        file.write(time_results.get_csv_representation())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
