@@ -1,12 +1,14 @@
 class ModelAccuracyResults():
 
-    def __init__(self, number_of_nodes, training_edges, test_edges, list_of_methods_result, caption, classifier):
+    def __init__(self, number_of_nodes, training_edges, test_edges, list_of_methods_result,
+                 caption, classifier, training_time):
         self.number_of_nodes = number_of_nodes
         self.training_edges = training_edges
         self.test_edges = test_edges
         self.list_of_methods_result = list_of_methods_result
         self.caption = caption
         self.classifier = classifier
+        self.training_time = training_time
     
     def get_latex_representation(self):
         begining = """
@@ -46,13 +48,15 @@ class ModelAccuracyResults():
 
 class ModelTimeResults():
 
-    def __init__(self, list_of_method_time, number_of_nodes, training_edges, test_edges, caption, classifier):
+    def __init__(self, list_of_method_time, number_of_nodes,
+                 training_edges, test_edges, caption, classifier, training_time):
         self.list_of_method_time = list_of_method_time
         self.number_of_nodes = number_of_nodes
         self.training_edges = training_edges
         self.test_edges = test_edges
         self.caption = caption
         self.classifier = classifier
+        self.training_time = training_time
 
     def get_latex_representation(self):
         beginning = """
@@ -83,14 +87,14 @@ class ModelTimeResults():
         return "{} & {:.4f} \\\ \\hline \n".format(methodTime.methodName, methodTime.time)
 
     def get_csv_representation(self):
-        #method_name,time
+        #method_name,classiier_type,number_of_node,training_edges,test_edges,classifier_training_time, time_of_emedding
         return "".join([self.get_row_csv_repr(method) for method in self.list_of_method_time])
 
     def get_row_csv_repr(self, methodTime):
-        return "{},{},{},{},{:.4f}\n".format(
+        return "{},{},{},{},{},{:.4f},{:.4f}\n".format(
             methodTime.methodName, self.classifier,
             self.number_of_nodes, self.training_edges, self.test_edges,
-            methodTime.time)
+            self.training_time, methodTime.time)
 
 
 

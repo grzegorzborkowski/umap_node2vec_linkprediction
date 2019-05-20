@@ -144,7 +144,8 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
     methods_list = [adamic_adard_result, jc_result, pa_result]
     lime_results = []
     for key, value in methods.items():
-        val_roc, val_ap, test_roc, test_ap, lime_explanations = link_prediction_on_embedding(key, value, lime, classifier)
+        val_roc, val_ap, test_roc, test_ap, lime_explanations,\
+            training_time = link_prediction_on_embedding(key, value, lime, classifier)
         methods_list.append(MethodResult(key, test_roc, test_ap))
         lime_results.append(lime_explanations)
 
@@ -164,7 +165,10 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
         caption = "Link prediction on DBLP dataset"
     else:
         caption = "Unknown caption"
-    result = ModelAccuracyResults(adj_sparse.shape[0], len(train_edges), len(test_edges), methods_list, caption, classifier)
+    result = ModelAccuracyResults(adj_sparse.shape[0],
+                                  len(train_edges), len(test_edges),
+                                  methods_list, caption,
+                                  classifier, training_time)
     
     with open("latex_results.txt", "a") as file:
         file.write(result.get_latex_representation())
@@ -179,8 +183,12 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
         MethodTime("node2vec+PCA (16)", pca16_time)
     ]
 
-    time_results = ModelTimeResults(methods_time, adj_sparse.shape[0], len(train_edges), len(test_edges),
-        "Time of the training of algorithms on Wikipedia dataset", classifier)
+    time_results = ModelTimeResults(methods_time,
+                                    adj_sparse.shape[0],
+                                    len(train_edges),
+                                    len(test_edges),
+        "Time of the training of algorithms on Wikipedia dataset",
+                                        classifier, training_time)
 
     with open("latex_time.txt", "a") as file:
         file.write(time_results.get_latex_representation())

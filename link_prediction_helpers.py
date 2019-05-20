@@ -253,14 +253,16 @@ def link_prediction_on_embedding(method_name, lp_arg, lime=False, classifier='SV
 
     # Create val-set edge labels: 1 = real edge, 0 = false edge
     test_edge_labels = np.concatenate([np.ones(len(test_edges)), np.zeros(len(test_edges_false))])
-
+    import time
     # Train logistic regression classifier on train-set edge embeddings
+    start = time.time()
     if classifier == 'SVM':
         edge_classifier = SVC(probability=True)
     else:
         edge_classifier = LogisticRegression(random_state=0)
 
     edge_classifier.fit(train_edge_embs, train_edge_labels)
+    end = time.time() - start
     if lime:
         lime_explainer = LimeExplainer.LimeExplainer(
             method_name, edge_classifier, train_edge_embs, train_edge_labels, test_edge_embs)
@@ -277,7 +279,7 @@ def link_prediction_on_embedding(method_name, lp_arg, lime=False, classifier='SV
     test_roc = roc_auc_score(test_edge_labels, test_preds)
     test_ap = average_precision_score(test_edge_labels, test_preds)
 
-    return val_roc, val_ap, test_roc, test_ap, lime_explanations
+    return val_roc, val_ap, test_roc, test_ap, lime_explanations, end
 
     # Generate bootstrapped edge embeddings (as is done in node2vec paper)
     # Edge embedding for (v1, v2) = hadamard product of node embeddings for v1, v2
