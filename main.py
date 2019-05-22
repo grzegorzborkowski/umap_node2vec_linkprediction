@@ -177,7 +177,7 @@ def calculate(min_degree, file_path="graph.graph", analyse="no", classifier='SVM
         file.write(result.get_csv_representation())
 
     methods_time = [
-        MethodTime("nodevec (32)", node2vec32_time),
+        MethodTime("node2vec (32)", node2vec32_time),
         MethodTime("node2vec (16)", node2vec16_time),
         MethodTime("node2vec+UMAP (16)", umap16_time),
         MethodTime("node2vec+PCA (16)", pca16_time)
